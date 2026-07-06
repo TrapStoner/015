@@ -5,6 +5,8 @@ import { Markdown } from 'tiptap-markdown'
 import Placeholder from '@tiptap/extension-placeholder'
 import { cx } from 'class-variance-authority'
 import countWords from '@/lib/countWords'
+import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
+
 const { t } = useI18n()
 
 const props = defineProps<{
@@ -22,7 +24,10 @@ onMounted(() => {
     editor.value = new Editor({
         content: props.modelValue,
         extensions: [
-            StarterKit,
+            StarterKit.configure({ codeBlock: false }),
+            CodeBlockShiki.configure({
+                defaultTheme: 'tokyo-night',
+            }),
             Markdown.configure({
                 transformPastedText: true,
                 transformCopiedText: true,
@@ -32,6 +37,13 @@ onMounted(() => {
             }),
             // CommandsPlugin,
         ],
+        editorProps: {
+            attributes: {
+                spellcheck: 'false',
+                autocorrect: 'off',
+                autocapitalize: 'off',
+            },
+        },
         onUpdate: () => {
             emit('update:modelValue', (editor.value as any)?.storage?.markdown?.getMarkdown() ?? '')
         },
@@ -65,6 +77,6 @@ onUnmounted(() => {
         v-if="modelValue?.length && modelValue?.length > 0"
         class="absolute bottom-2 right-3 flex justify-end px-2 py-1 text-xs text-gray-400 select-none bg-white rounded-md"
     >
-        {{ `${modelValue?.length ?? 0} ${t('common.length')}  ·  ${countWords(modelValue ?? '')} ${t('common.words')}` }}
+        {{ `${modelValue?.length ?? 0} ${t('common.length')} · ${countWords(modelValue ?? '')} ${t('common.words')}` }}
     </div>
 </template>

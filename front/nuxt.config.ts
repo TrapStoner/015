@@ -48,7 +48,6 @@ export default defineNuxtConfig({
                 'dayjs/locale/en', // CJS
                 'dayjs/locale/zh-cn', // CJS
                 'dayjs/plugin/relativeTime', // CJS
-                'eventemitter3',
                 'file-type',
                 'filesize',
                 'hash-wasm',
@@ -58,9 +57,12 @@ export default defineNuxtConfig({
                 'nanoid',
                 'qrcode', // CJS
                 'reka-ui',
+                'shiki',
                 'sweet-curl-parser', // CJS
                 'tailwind-merge',
+                'tiptap-extension-code-block-shiki',
                 'tiptap-markdown',
+                'vaul-vue',
                 'vue-sonner',
                 'vue3-pixi',
             ],
