@@ -76,6 +76,7 @@
         "shadcn-nuxt": "^2.7.4",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9",
+        "vue-tsc": "^3.3.6",
         "vue3-pixi-nuxt": "^1.0.1"
     }
 }
