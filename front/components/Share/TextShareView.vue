@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
 import AsyncButton from '@/components/ui/button/AsyncButton.vue'
-import duration from 'dayjs/plugin/duration'
-import relativeTime from 'dayjs/plugin/relativeTime'
 import { cx } from 'class-variance-authority'
 import { toast } from 'vue-sonner'
 import MarkdownRender from '@/components/MarkdownRender.vue'
 import showDrawer from '~/lib/showDrawer'
 import PasswallShareDrawer from '~/components/Drawer/PasswallShareDrawer.vue'
-
-dayjs.extend(duration)
-dayjs.extend(relativeTime)
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -19,24 +13,15 @@ const props = defineProps<{
 
 const { getShareToken } = useMyAppShare()
 
-const expireSeconds = computed(() => {
-    return dayjs(props?.data?.expire_at * 10e2).unix() - dayjs().unix()
-})
-
-const { remaining, start } = useCountdown(expireSeconds.value)
-
-onMounted(() => {
-    start()
-})
-
 const textShareInfo = computed(() => {
     return [
-        { label: t('page.shareView.textShare.needPassword'), value: props?.data?.has_password ?? false },
+        { label: t('page.shareView.textShare.needPassword'), type: 'bool' as const, value: props?.data?.has_password ?? false },
         {
             label: t('page.shareView.textShare.expireTime'),
-            value: dayjs.duration(remaining.value, 'seconds').format(t('page.shareView.textShare.durationFormat')),
+            type: 'countdown' as const,
+            value: props?.data?.expire_at ?? 0,
         },
-        { label: t('page.shareView.textShare.remainingViews'), value: props?.data?.download_nums ?? 0 },
+        { label: t('page.shareView.textShare.remainingViews'), type: 'string' as const, value: props?.data?.download_nums ?? 0 },
     ]
 })
 const previewText = ref<string | null>(null)

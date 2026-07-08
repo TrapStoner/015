@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import AsyncButton from '@/components/ui/button/AsyncButton.vue'
-import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
-import relativeTime from 'dayjs/plugin/relativeTime'
 import { useQueryClient } from '@tanstack/vue-query'
 import showDrawer from '~/lib/showDrawer'
 import { toast } from 'vue-sonner'
 import PasswallShareDrawer from '~/components/Drawer/PasswallShareDrawer.vue'
-dayjs.extend(duration)
-dayjs.extend(relativeTime)
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -42,24 +37,15 @@ const handleDownload = async () => {
     }
 }
 
-const expireSeconds = computed(() => {
-    return dayjs(props?.data?.expire_at * 10e2).unix() - dayjs().unix()
-})
-
-const { remaining, start } = useCountdown(expireSeconds.value)
-
-onMounted(() => {
-    start()
-})
-
 const fileShareInfo = computed(() => {
     return [
-        { label: t('page.shareView.fileShare.needPassword'), value: props?.data?.has_password ?? false },
+        { label: t('page.shareView.fileShare.needPassword'), type: 'bool' as const, value: props?.data?.has_password ?? false },
         {
             label: t('page.shareView.fileShare.expireTime'),
-            value: dayjs.duration(remaining.value, 'seconds').format(t('page.shareView.fileShare.durationFormat')),
+            type: 'countdown' as const,
+            value: props?.data?.expire_at ?? 0,
         },
-        { label: t('page.shareView.fileShare.remainingDownloads'), value: props?.data?.download_nums ?? 0 },
+        { label: t('page.shareView.fileShare.remainingDownloads'), type: 'string' as const, value: props?.data?.download_nums ?? 0 },
     ]
 })
 </script>

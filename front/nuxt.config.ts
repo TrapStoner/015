@@ -37,6 +37,7 @@ export default defineNuxtConfig({
         optimizeDeps: {
             include: [
                 '@lucide/vue',
+                '@number-flow/vue',
                 '@tanstack/vue-query',
                 '@tiptap/extension-placeholder',
                 '@tiptap/starter-kit',
@@ -47,6 +48,7 @@ export default defineNuxtConfig({
                 'dayjs', // CJS
                 'dayjs/locale/en', // CJS
                 'dayjs/locale/zh-cn', // CJS
+                'dayjs/plugin/duration', // CJS
                 'dayjs/plugin/relativeTime', // CJS
                 'file-type',
                 'filesize',
