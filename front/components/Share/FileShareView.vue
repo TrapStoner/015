@@ -52,7 +52,7 @@ const fileShareInfo = computed(() => {
 
 <template>
     <div class="flex flex-col gap-5 items-center">
-        <h1 class="text-xl font-bold">{{ t('page.shareView.fileShare.title') }}</h1>
+        <h1 class="text-xl">{{ t('page.shareView.fileShare.title') }}</h1>
         <FilePreviewView :value="props?.data" />
         <ShareInfoCards :items="fileShareInfo" />
         <div class="w-full">
