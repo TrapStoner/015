@@ -53,7 +53,7 @@ export default defineNuxtConfig({
                 'hash-wasm',
                 'heic-to',
                 'lodash-es',
-                'markdown-it',
+                'markdown-it-async',
                 'nanoid',
                 'qrcode', // CJS
                 'reka-ui',
