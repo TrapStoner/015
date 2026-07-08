@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import markdownit from 'markdown-it'
 import { cx } from 'class-variance-authority'
+import getMDRenderHtml from '~/lib/getMDRenderHtml'
+
 const props = defineProps<{
     markdown: string
     class?: string
 }>()
 const renderHtml = computed(() => {
-    const md = markdownit()
-    return md.render(props?.markdown || '')
+    return getMDRenderHtml(props.markdown)
 })
 </script>
 <template>
