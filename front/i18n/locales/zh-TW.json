@@ -40,7 +40,9 @@
         "add": "新增",
         "copySuccess": "複製成功",
         "length": "長度",
-        "words": "字符"
+        "words": "字符",
+        "searchOptions": "搜尋選項...",
+        "emptyOptions": "搜尋結果為空"
     },
     "page": {
         "upload": {

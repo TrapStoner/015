@@ -31,13 +31,14 @@ const props = withDefaults(
         class?: HTMLAttributes['class']
         listClass?: HTMLAttributes['class']
     }>(),
-    {
-        searchPlaceholder: '搜索选项...',
-        emptyText: '搜索结果为空',
-    }
+    {}
 )
 
+const { t } = useI18n()
 const modelValue = defineModel<ComboboxValue | ComboboxValue[]>()
+
+const inputPlaceholder = computed(() => props.searchPlaceholder ?? t('common.searchOptions'))
+const emptyLabel = computed(() => props.emptyText ?? t('common.emptyOptions'))
 
 const selectedValues = computed(() => {
     if (Array.isArray(modelValue.value)) return modelValue.value
@@ -70,8 +71,8 @@ const displayValue = computed(() => {
         </ComboboxAnchor>
 
         <ComboboxList :class="listClass" align="start">
-            <ComboboxInput :placeholder="searchPlaceholder" />
-            <ComboboxEmpty>{{ emptyText }}</ComboboxEmpty>
+            <ComboboxInput :placeholder="inputPlaceholder" />
+            <ComboboxEmpty>{{ emptyLabel }}</ComboboxEmpty>
             <ComboboxGroup>
                 <div v-if="label" class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                     {{ label }}

@@ -40,7 +40,9 @@
         "add": "追加",
         "copySuccess": "コピーしました",
         "length": "長さ",
-        "words": "文字"
+        "words": "文字",
+        "searchOptions": "オプションを検索...",
+        "emptyOptions": "検索結果がありません"
     },
     "page": {
         "upload": {

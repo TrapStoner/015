@@ -40,7 +40,9 @@
         "add": "추가",
         "copySuccess": "복사되었습니다",
         "length": "길이",
-        "words": "단어"
+        "words": "단어",
+        "searchOptions": "옵션 검색...",
+        "emptyOptions": "검색 결과가 없습니다"
     },
     "page": {
         "upload": {
