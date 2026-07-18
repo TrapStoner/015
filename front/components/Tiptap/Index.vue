@@ -6,6 +6,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { cx } from 'class-variance-authority'
 import countWords from '@/lib/countWords'
 import CodeBlockShiki from 'tiptap-extension-code-block-shiki'
+import Button from '@/components/ui/button/Button.vue'
 
 const { t } = useI18n()
 
@@ -19,6 +20,11 @@ const emit = defineEmits<{
 }>()
 
 const editor = ref<Editor | undefined>(undefined)
+
+const clearContent = () => {
+    editor.value?.commands.clearContent()
+    emit('update:modelValue', '')
+}
 
 onMounted(() => {
     editor.value = new Editor({
@@ -62,21 +68,37 @@ onUnmounted(() => {
 })
 </script>
 <template>
-    <editor-content
-        :editor="editor as any"
-        :class="
-            cx(
-                'prose prose-sm bg-white/50 rounded-md p-2 *:outline-none prose-p:my-1 prose-headings:my-2 prose-pre:mb-0 prose-blockquote:border-black/50 selection:bg-primary/20 max-w-full',
-                props.class
-            )
-        "
-    >
-    </editor-content>
-    <!-- <BubbleMenuView :editor="editor as any" /> -->
-    <div
-        v-if="modelValue?.length && modelValue?.length > 0"
-        class="absolute bottom-2 right-3 flex justify-end px-2 py-1 text-xs text-gray-400 select-none bg-white rounded-md"
-    >
-        {{ `${modelValue?.length ?? 0} ${t('common.length')} · ${countWords(modelValue ?? '')} ${t('common.words')}` }}
+    <div class="relative">
+        <editor-content
+            :editor="editor as any"
+            :class="
+                cx(
+                    'prose prose-sm bg-white/50 rounded-md p-2 pr-10 *:outline-none prose-p:my-1 prose-headings:my-2 prose-pre:mb-0 prose-blockquote:border-black/50 selection:bg-primary/20 max-w-full',
+                    props.class
+                )
+            "
+        >
+        </editor-content>
+        <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            :class="
+                cx(
+                    'absolute right-2 top-2 hover:bg-black/10 transition-all duration-300',
+                    modelValue?.length && modelValue.length > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )
+            "
+            @click="clearContent"
+        >
+            <LucideX class="size-4" />
+        </Button>
+        <!-- <BubbleMenuView :editor="editor as any" /> -->
+        <div
+            v-if="modelValue?.length && modelValue?.length > 0"
+            class="absolute bottom-2 right-3 flex justify-end px-2 py-1 text-xs text-gray-400 select-none bg-white rounded-md"
+        >
+            {{ `${modelValue?.length ?? 0} ${t('common.length')} · ${countWords(modelValue ?? '')} ${t('common.words')}` }}
+        </div>
     </div>
 </template>

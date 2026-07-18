@@ -1,11 +1,9 @@
 <script lang="ts" setup>
 import MarkdownInputField from '@/components/Field/MarkdownInputField.vue'
 import FormButton from '@/components/Field/FormButton.vue'
-import Button from '@/components/ui/button/Button.vue'
 import showDrawer from '@/lib/showDrawer'
 import { h } from 'vue'
 import TextShareDrawer from '@/components/Drawer/TextShareDrawer.vue'
-import { cx } from 'class-variance-authority'
 import PickupShareBtn from '@/components/PickupShareBtn.vue'
 const form = useFormContext()
 const { t } = useI18n()
@@ -26,26 +24,9 @@ const handleTextShare = ({ type, config }: { type: string; config: any }) => {
             <MarkdownInputField
                 name="text"
                 :placeholder="t('page.upload.text.uploadTextPlaceholder')"
-                class="max-h-[50vh] min-h-40 overflow-y-auto max-w-full *:pr-10 flex flex-col"
+                class="max-h-[50vh] min-h-40 overflow-y-auto max-w-full flex flex-col"
                 rules="required"
             />
-            <Button
-                variant="ghost"
-                size="icon"
-                :class="
-                    cx(
-                        'absolute right-2 top-2 hover:bg-black/10 transition-all duration-300',
-                        form?.values.text?.length > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                    )
-                "
-                @click="
-                    () => {
-                        form?.setValues({ text: '' })
-                    }
-                "
-            >
-                <LucideX class="size-4" />
-            </Button>
         </div>
         <div class="flex flex-row gap-3">
             <FormButton
