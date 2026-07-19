@@ -68,15 +68,10 @@ onUnmounted(() => {
 })
 </script>
 <template>
-    <div class="relative">
+    <div :class="['relative bg-white/50 rounded-md p-2 pr-10 overflow-hidden [&_.tiptap]:h-full', props.class]">
         <editor-content
             :editor="editor as any"
-            :class="
-                cx(
-                    'prose prose-sm bg-white/50 rounded-md p-2 pr-10 *:outline-none prose-p:my-1 prose-headings:my-2 prose-pre:mb-0 prose-blockquote:border-black/50 selection:bg-primary/20 max-w-full',
-                    props.class
-                )
-            "
+            class="prose prose-sm *:outline-none prose-p:my-1 prose-headings:my-2 prose-pre:mb-0 prose-blockquote:border-black/50 selection:bg-primary/20 max-w-full w-full"
         >
         </editor-content>
         <Button
@@ -98,7 +93,10 @@ onUnmounted(() => {
             v-if="modelValue?.length && modelValue?.length > 0"
             class="absolute bottom-2 right-3 flex justify-end px-2 py-1 text-xs text-gray-400 select-none bg-white rounded-md"
         >
-            {{ `${modelValue?.length ?? 0} ${t('common.length')} · ${countWords(modelValue ?? '')} ${t('common.words')}` }}
+            {{
+                `${modelValue?.length ?? 0} ${t('common.length')} · ${countWords(modelValue ?? '')}
+            ${t('common.words')}`
+            }}
         </div>
     </div>
 </template>
