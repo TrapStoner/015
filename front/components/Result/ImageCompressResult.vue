@@ -145,7 +145,7 @@ watch(
             <div class="flex items-center justify-center" v-if="!taskResults?.[index]?.data">
                 <Skeleton class="w-16 h-12" />
             </div>
-            <div class="flex flex-row gap-1 items-center text-sm" v-if="taskResults?.[index]?.data?.status === 'retry'">
+            <div class="flex flex-row gap-1 items-center text-sm shrink-0" v-if="taskResults?.[index]?.data?.status === 'retry'">
                 <LucideLoader2 class="size-4 animate-spin" />
                 {{
                     t('page.result.imageCompress.retry', [
@@ -154,7 +154,7 @@ watch(
                     ])
                 }}
             </div>
-            <div class="flex items-center justify-center" v-if="taskResults?.[index]?.data?.status === 'archived'">
+            <div class="flex items-center justify-center shrink-0" v-if="taskResults?.[index]?.data?.status === 'archived'">
                 <div class="text-sm text-red-500 px-2 py-1 rounded-md bg-red-100">{{ t('page.result.imageCompress.failed') }}</div>
             </div>
             <div class="flex flex-row gap-2 items-center shrink-0" v-if="taskResults?.[index]?.data?.status === 'success'">
