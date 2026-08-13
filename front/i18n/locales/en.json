@@ -40,7 +40,9 @@
         "add": "Add",
         "copySuccess": "Copy Success",
         "length": "length",
-        "words": "words"
+        "words": "words",
+        "searchOptions": "Search options...",
+        "emptyOptions": "No results found"
     },
     "page": {
         "upload": {

@@ -11,6 +11,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v5"
 	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 )
 
@@ -79,21 +80,15 @@ func CreateShareInfo(c *echo.Context) error {
 	var notifyEmails []string
 	var notifyWebhooks []models.NotifyWebhook
 	if r.Config.HasNotify {
-		hasEmail, hasWebhook := false, false
-		for _, nt := range r.Config.NotifyTypes {
-			switch nt {
-			case "email":
-				hasEmail = true
-			case "webhook":
-				hasWebhook = true
-			default:
-				return utils.HTTPErrorHandler(c, ErrInvalidRequest)
-			}
+		if !lo.EveryBy(r.Config.NotifyTypes, func(nt string) bool {
+			return nt == "email" || nt == "webhook"
+		}) {
+			return utils.HTTPErrorHandler(c, ErrInvalidRequest)
 		}
-		if hasEmail {
+		if lo.Contains(r.Config.NotifyTypes, "email") {
 			notifyEmails = r.Config.NotifyEmails
 		}
-		if hasWebhook {
+		if lo.Contains(r.Config.NotifyTypes, "webhook") {
 			notifyWebhooks = r.Config.NotifyWebhooks
 		}
 	}

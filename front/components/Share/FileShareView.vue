@@ -1,16 +1,9 @@
 <script setup lang="ts">
 import AsyncButton from '@/components/ui/button/AsyncButton.vue'
-import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import { isBoolean } from 'lodash-es'
-import { LucideCheck, LucideX } from '@lucide/vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import showDrawer from '~/lib/showDrawer'
 import { toast } from 'vue-sonner'
 import PasswallShareDrawer from '~/components/Drawer/PasswallShareDrawer.vue'
-dayjs.extend(duration)
-dayjs.extend(relativeTime)
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -44,39 +37,24 @@ const handleDownload = async () => {
     }
 }
 
-const expireSeconds = computed(() => {
-    return dayjs(props?.data?.expire_at * 10e2).unix() - dayjs().unix()
-})
-
-const { remaining, start } = useCountdown(expireSeconds.value)
-
-onMounted(() => {
-    start()
-})
-
 const fileShareInfo = computed(() => {
     return [
-        { label: t('page.shareView.fileShare.needPassword'), value: props?.data?.has_password ?? false },
+        { label: t('page.shareView.fileShare.needPassword'), type: 'bool' as const, value: props?.data?.has_password ?? false },
         {
             label: t('page.shareView.fileShare.expireTime'),
-            value: dayjs.duration(remaining.value, 'seconds').format(t('page.shareView.fileShare.durationFormat')),
+            type: 'countdown' as const,
+            value: props?.data?.expire_at ?? 0,
         },
-        { label: t('page.shareView.fileShare.remainingDownloads'), value: props?.data?.download_nums ?? 0 },
+        { label: t('page.shareView.fileShare.remainingDownloads'), type: 'string' as const, value: props?.data?.download_nums ?? 0 },
     ]
 })
 </script>
 
 <template>
     <div class="flex flex-col gap-5 items-center">
-        <h1 class="text-xl font-bold">{{ t('page.shareView.fileShare.title') }}</h1>
+        <h1 class="text-xl">{{ t('page.shareView.fileShare.title') }}</h1>
         <FilePreviewView :value="props?.data" />
-        <div class="flex flex-col gap-2 md:flex-row w-full">
-            <div class="flex flex-row md:flex-col md:gap-1 justify-between items-center md:flex-1" v-for="item in fileShareInfo">
-                <div class="text-xs opacity-75">{{ item?.label }}</div>
-                <component v-if="isBoolean(item?.value)" :is="item?.value ? LucideCheck : LucideX" class="size-6" />
-                <div v-else class="md:text-xl">{{ item?.value }}</div>
-            </div>
-        </div>
+        <ShareInfoCards :items="fileShareInfo" />
         <div class="w-full">
             <AsyncButton @click="handleDownload" class="w-full">{{ t('page.shareView.fileShare.downloadBtn') }}</AsyncButton>
         </div>

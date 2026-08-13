@@ -16,11 +16,15 @@
         "test:worker": "cd worker && go test -v ./test/...",
         "test": "concurrently -n backend,worker -c green,yellow 'pnpm:test:backend' 'pnpm:test:worker'",
         "prepare": "husky",
-        "up-deps": "concurrently -n backend,worker,models,utils -c green,yellow,blue,magenta 'pnpm:up-deps:backend' 'pnpm:up-deps:worker' 'pnpm:up-deps:models' 'pnpm:up-deps:utils'",
+        "up-deps": "concurrently -n backend,worker,models,utils,services,geoip,mail,i18n -c green,yellow,blue,magenta,cyan,white,gray,red 'pnpm:up-deps:backend' 'pnpm:up-deps:worker' 'pnpm:up-deps:models' 'pnpm:up-deps:utils' 'pnpm:up-deps:services' 'pnpm:up-deps:geoip' 'pnpm:up-deps:mail' 'pnpm:up-deps:i18n'",
         "up-deps:backend": "cd backend && go get -u",
         "up-deps:worker": "cd worker && go get -u",
         "up-deps:models": "cd pkg/models && go get -u",
         "up-deps:utils": "cd pkg/utils && go get -u",
+        "up-deps:services": "cd pkg/services && go get -u",
+        "up-deps:geoip": "cd pkg/geoip && go get -u",
+        "up-deps:mail": "cd pkg/mail && go get -u",
+        "up-deps:i18n": "cd pkg/i18n && go get -u",
         "gen:mail": "cd pkg/mail && pnpm export"
     },
     "workspaces": [
@@ -39,9 +43,9 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "concurrently": "^9.2.1",
+        "concurrently": "^9.2.4",
         "husky": "^9.1.7",
         "lint-staged": "^15.5.2",
-        "prettier": "^3.8.3"
+        "prettier": "^3.9.6"
     }
 }

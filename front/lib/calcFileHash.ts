@@ -28,8 +28,8 @@ const calcFileHash = async (props: CalcFileHashProps) => {
     return hasher.digest('hex')
 }
 
-export const calcNativeHash = async (buffer: BufferSource) => {
-    const hashBuffer = await crypto.subtle.digest('SHA-1', buffer)
+export const calcNativeHash = async (buffer: BufferSource, algorithm: AlgorithmIdentifier = 'SHA-1') => {
+    const hashBuffer = await crypto.subtle.digest(algorithm, buffer)
     return Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('')

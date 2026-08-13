@@ -39,8 +39,8 @@ const { t } = useI18n()
 
 const { state: userAvatar } = useAsyncState(async () => {
     if (!data?.value?.email) return null
-    const buffer = new TextEncoder().encode(data?.value?.email)
-    const hash = await calcNativeHash(buffer)
+    const buffer = new TextEncoder().encode(data.value.email.trim().toLowerCase())
+    const hash = await calcNativeHash(buffer, 'SHA-256')
     return `https://www.gravatar.com/avatar/${hash}?d=retro`
 }, null)
 </script>

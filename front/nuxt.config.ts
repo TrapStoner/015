@@ -37,6 +37,7 @@ export default defineNuxtConfig({
         optimizeDeps: {
             include: [
                 '@lucide/vue',
+                '@number-flow/vue',
                 '@tanstack/vue-query',
                 '@tiptap/extension-placeholder',
                 '@tiptap/starter-kit',
@@ -47,20 +48,23 @@ export default defineNuxtConfig({
                 'dayjs', // CJS
                 'dayjs/locale/en', // CJS
                 'dayjs/locale/zh-cn', // CJS
+                'dayjs/plugin/duration', // CJS
                 'dayjs/plugin/relativeTime', // CJS
-                'eventemitter3',
                 'file-type',
                 'filesize',
                 'hash-wasm',
                 'heic-to',
                 'lodash-es',
-                'markdown-it',
+                'markdown-it-async',
                 'nanoid',
                 'qrcode', // CJS
                 'reka-ui',
+                'shiki',
                 'sweet-curl-parser', // CJS
                 'tailwind-merge',
+                'tiptap-extension-code-block-shiki',
                 'tiptap-markdown',
+                'vaul-vue',
                 'vue-sonner',
                 'vue3-pixi',
             ],

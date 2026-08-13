@@ -8,6 +8,9 @@ import VeeForm from '@/components/VeeForm.vue'
 import InputField from '@/components/Field/InputField.vue'
 import FormButton from '@/components/Field/FormButton.vue'
 import SelectField from '@/components/Field/SelectField.vue'
+import MultiSelectField from '@/components/Field/MultiSelectField.vue'
+import ComboboxField from '@/components/Field/ComboboxField.vue'
+import MultiComboboxField from '@/components/Field/MultiComboboxField.vue'
 import SwitchField from '@/components/Field/SwitchField.vue'
 import dayjs from 'dayjs'
 
@@ -77,20 +80,56 @@ if (!isDev) {
         <VeeForm
             :initialValues="{
                 select: '1',
+                combobox: '1',
+                multiCombobox: ['1'],
             }"
         >
             <div class="flex flex-col gap-5 bg-white p-5 rounded-xl">
                 <div>表单测试</div>
                 <InputField name="input" label="input" rules="required" />
-                <SelectField
-                    name="select"
-                    label="select"
-                    :options="[
-                        { label: 'one', value: '1' },
-                        { label: 'two', value: '2' },
-                    ]"
-                    rules="required"
-                />
+                <div class="flex gap-3">
+                    <SelectField
+                        name="select"
+                        label="select"
+                        :options="[
+                            { label: 'one', value: '1' },
+                            { label: 'two', value: '2' },
+                        ]"
+                        rules="required"
+                    />
+                    <MultiSelectField
+                        name="multiselect"
+                        label="multiselect"
+                        :options="[
+                            { label: 'one', value: '1' },
+                            { label: 'two', value: '2' },
+                        ]"
+                        rules="required"
+                    />
+                </div>
+                <div class="flex gap-3">
+                    <ComboboxField
+                        name="combobox"
+                        label="combobox"
+                        class="w-20"
+                        placeholder="请选择"
+                        :options="[
+                            { label: 'one', value: '1' },
+                            { label: 'two', value: '2' },
+                        ]"
+                        rules="required"
+                    />
+                    <MultiComboboxField
+                        name="multiCombobox"
+                        label="multiCombobox"
+                        placeholder="请选择"
+                        :options="[
+                            { label: 'one', value: '1' },
+                            { label: 'two', value: '2' },
+                        ]"
+                        rules="required"
+                    />
+                </div>
                 <SwitchField name="switch" label="我同意xxx" :rules="(v: any) => !!v" />
                 <FormButton
                     @click="
