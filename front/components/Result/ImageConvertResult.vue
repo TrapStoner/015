@@ -163,7 +163,7 @@ const totalExt = computed(() => {
                             if (!new_file?.id) return
                             const [, originalName, originalExt] = item?.file?.name?.match(/(.*?)\.([^.]+(?:\.[^.]+)*)$/) ?? []
                             const data = await createFileShare({
-                                files: [{ id: new_file?.id as string, name: `${originalName}.${targetExt}` }],
+                                files: [{ id: new_file?.id as string, file_name: `${originalName}.${targetExt}` }],
                                 config: {
                                     download_nums: 1,
                                     expire_time: 60,
@@ -171,12 +171,12 @@ const totalExt = computed(() => {
                                     has_password: false,
                                 },
                             })
-                            const { id } = data?.[0]?.data || {}
+                            const { id } = data?.data || {}
                             if (!id) {
                                 return
                             }
                             try {
-                                await downloadFileByShareId(id)
+                                await downloadFileByShareId(id, new_file.id)
                             } catch (error: any) {
                                 toast.error(error?.data?.message || error?.message || error)
                             }

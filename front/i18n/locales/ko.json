@@ -37,6 +37,7 @@
         "backToHome": "홈으로 돌아가기"
     },
     "common": {
+        "systemShare": "시스템으로 공유",
         "add": "추가",
         "copySuccess": "복사되었습니다",
         "length": "길이",
@@ -235,7 +236,30 @@
                 "title": "공유 QR 코드"
             }
         },
+        "shareManage": {
+            "title": "공유 관리",
+            "basicInfo": "기본 정보",
+            "downloads": "남은 다운로드",
+            "views": "남은 조회",
+            "expiresAt": "만료 시간",
+            "pickupCode": "수령 코드",
+            "notifyEnabled": "알림 활성화",
+            "shareUrl": "공유 URL",
+            "openShare": "공유 열기",
+            "files": "파일",
+            "textContent": "텍스트 내용",
+            "loadFailed": "공유가 만료되었거나 관리 권한이 없습니다",
+            "deleteShare": "공유 삭제",
+            "deleteConfirmTitle": "이 공유를 삭제하시겠습니까?",
+            "deleteConfirmDescription": "공유 링크가 즉시 만료됩니다. 이 작업은 취소할 수 없습니다.",
+            "cancelDelete": "취소",
+            "confirmDelete": "삭제",
+            "deleteFailed": "공유를 삭제하지 못했습니다"
+        },
         "shareView": {
+            "title": "공유",
+            "needPassword": "비밀번호가 필요합니다",
+            "expireTime": "만료 시간",
             "linkExpired": "이 링크는 만료되었습니다.",
             "passwall": {
                 "title": "비밀번호 입력",
@@ -243,10 +267,10 @@
                 "passwordPlaceholder": "비밀번호를 입력하세요"
             },
             "fileShare": {
+                "fileList": "파일 목록",
                 "title": "파일 다운로드",
                 "downloadBtn": "다운로드",
-                "needPassword": "비밀번호가 필요합니다",
-                "expireTime": "만료 시간",
+                "packageDownload": "압축 파일 다운로드",
                 "remainingDownloads": "남은 다운로드 횟수",
                 "getTokenFailed": "토큰을 가져오지 못했습니다",
                 "durationFormat": "D일 HH:mm:ss"
@@ -254,8 +278,6 @@
             "textShare": {
                 "title": "텍스트 보기",
                 "viewBtn": "보기",
-                "needPassword": "비밀번호가 필요합니다",
-                "expireTime": "만료 시간",
                 "remainingViews": "남은 조회 횟수",
                 "durationFormat": "D일 HH:mm:ss"
             }

@@ -1,11 +1,16 @@
 package controllers
 
 import (
+	"backend/internal/services"
 	"backend/internal/utils"
 	"context"
 	"encoding/json"
 	"fmt"
-	"pkg/models"
+	"os"
+	"path/filepath"
+	filemodel "pkg/models/file"
+	sharemodel "pkg/models/share"
+	statmodel "pkg/models/stat"
 	u "pkg/utils"
 	"time"
 
@@ -22,7 +27,12 @@ type DownloadShareClaims struct {
 }
 
 func DownloadShare(c *echo.Context) error {
-	token := c.FormValue("token")
+	req := c.Request()
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+	token := req.Form.Get("token")
+	fileIds := req.Form["file_ids"]
 	if token == "" {
 		return utils.HTTPErrorHandler(c, ErrInvalidRequest)
 	}
@@ -33,20 +43,56 @@ func DownloadShare(c *echo.Context) error {
 	if err != nil || !t.Valid {
 		return utils.HTTPErrorHandler(c, lo.Ternary(err != nil, err, ErrInvalidRequest))
 	}
-	shareInfo, err := models.GetRedisShareInfo(claims.ShareId)
+	if claims.ShareId == "" {
+		return utils.HTTPErrorHandler(c, ErrInvalidRequest)
+	}
+	shareInfo, err := sharemodel.GetRedisShareInfo(claims.ShareId)
 	if err != nil || shareInfo == nil {
 		return utils.HTTPErrorHandler(c, lo.Ternary(err != nil, err, ErrShareNotFound))
 	}
-	if shareInfo.Type == models.ShareTypeFile {
-		fileInfo, _ := models.GetRedisFileInfo(shareInfo.Data)
+	if shareInfo.Type == sharemodel.ShareTypeFile {
+		shareFiles := shareInfo.Files
+		if len(fileIds) > 0 {
+			shareFiles = lo.Filter(shareFiles, func(file sharemodel.ShareFileData, _ int) bool {
+				return lo.Contains(fileIds, file.Id)
+			})
+			if len(shareFiles) != len(fileIds) {
+				return utils.HTTPErrorHandler(c, ErrInvalidShareFileData)
+			}
+		}
+		if len(shareFiles) == 0 {
+			return utils.HTTPErrorHandler(c, ErrInvalidShareFileData)
+		}
 		uploadPath, err := u.GetUploadDirPath()
 		if err != nil {
 			return err
 		}
-		return c.Attachment(fmt.Sprintf("%s/%s", uploadPath, u.GetFileId(fileInfo.FileHash, fileInfo.FileSize)), shareInfo.FileName)
+		for index, file := range shareFiles {
+			fileInfo, err := filemodel.GetRedisFileInfo(file.Id)
+			if err != nil {
+				return utils.HTTPErrorHandler(c, err)
+			}
+			if fileInfo == nil {
+				return utils.HTTPErrorHandler(c, ErrShareFileNotFound)
+			}
+			shareFiles[index].Id = u.GetFileId(fileInfo.FileHash, fileInfo.FileSize)
+		}
+		if len(shareFiles) == 1 {
+			return c.Attachment(shareFiles[0].Id, shareFiles[0].FileName)
+		}
+		target := c.FormValue("target")
+		if !lo.Contains([]string{"zip", "tar.gz", "tar.zst", "tar.s2", "tar.snappy"}, target) {
+			target = "zip"
+		}
+		compressFullName, err := services.GenerateCompressFiles(claims.ShareId, shareFiles, uploadPath, target)
+		if err != nil {
+			return utils.HTTPErrorHandler(c, err)
+		}
+		defer os.Remove(filepath.Join(uploadPath, compressFullName)) //nolint:errcheck
+		return c.Attachment(compressFullName, fmt.Sprintf("%s.%s", claims.ShareId, target))
 	}
 	return utils.HTTPSuccessHandler(c, map[string]any{
-		"data": shareInfo.Data,
+		"text": shareInfo.Text,
 	})
 }
 
@@ -65,11 +111,11 @@ func VaildateShare(c *echo.Context) error {
 		return utils.HTTPErrorHandler(c, ErrInvalidRequest)
 	}
 
-	shareInfo, err := models.GetRedisShareInfo(r.ShareId)
+	shareInfo, err := sharemodel.GetRedisShareInfo(r.ShareId)
 	if err != nil {
 		return utils.HTTPErrorHandler(c, err)
 	}
-	if shareInfo == nil {
+	if shareInfo == nil || shareInfo.ExpireAt <= time.Now().Unix() {
 		return utils.HTTPErrorHandler(c, ErrShareNotFound)
 	}
 	if shareInfo.Password != "" {
@@ -85,12 +131,29 @@ func VaildateShare(c *echo.Context) error {
 		}
 	}
 	return u.WithLocker(context.Background(), "015:shareInfoMap:"+r.ShareId, 0, func(ctx context.Context) error {
-		shareInfo, err := models.GetRedisShareInfo(r.ShareId)
+		shareInfo, err := sharemodel.GetRedisShareInfo(r.ShareId)
 		if err != nil || shareInfo == nil {
 			return utils.HTTPErrorHandler(c, lo.Ternary(err != nil, err, ErrShareNotFound))
 		}
+		if shareInfo.ExpireAt <= time.Now().Unix() {
+			return utils.HTTPErrorHandler(c, ErrShareNotFound)
+		}
 		if shareInfo.ViewNum < 1 {
 			return utils.HTTPErrorHandler(c, ErrInsufficientDownloadQuota)
+		}
+		if shareInfo.Type == sharemodel.ShareTypeFile {
+			for _, file := range shareInfo.Files {
+				fileInfo, err := filemodel.GetRedisFileInfo(file.Id)
+				if err != nil {
+					return utils.HTTPErrorHandler(c, err)
+				}
+				if fileInfo == nil {
+					return utils.HTTPErrorHandler(c, ErrShareFileNotFound)
+				}
+				if fileInfo.FileType != filemodel.FileTypeUpload {
+					return utils.HTTPErrorHandler(c, ErrInvalidShareFileState)
+				}
+			}
 		}
 		downloadWindow := u.GetEnvWithDefault("share.download_window", "12")
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, DownloadShareClaims{
@@ -105,20 +168,8 @@ func VaildateShare(c *echo.Context) error {
 		if err != nil {
 			return utils.HTTPErrorHandler(c, err)
 		}
-		if shareInfo.Type == models.ShareTypeFile {
-			fileInfo, err := models.GetRedisFileInfo(shareInfo.Data)
-			if err != nil {
-				return utils.HTTPErrorHandler(c, err)
-			}
-			if fileInfo == nil {
-				return utils.HTTPErrorHandler(c, ErrShareFileNotFound)
-			}
-			if fileInfo.FileType != models.FileTypeUpload {
-				return utils.HTTPErrorHandler(c, ErrInvalidShareFileState)
-			}
-		}
 		// download_nums 必须放在创建token的时候减掉，不然多线程下载会导致多次减掉
-		_, err = models.SetRedisShareInfo(r.ShareId, func(shareInfo *models.RedisShareInfo) *models.RedisShareInfo {
+		_, err = sharemodel.SetRedisShareInfo(r.ShareId, func(shareInfo *sharemodel.RedisShareInfo) *sharemodel.RedisShareInfo {
 			shareInfo.ViewNum -= 1
 			return shareInfo
 		})
@@ -128,7 +179,7 @@ func VaildateShare(c *echo.Context) error {
 
 		// 统计分享数
 		currentDate := time.Now().Format("2006-01-02")
-		_, err = models.SetRedisStat(currentDate, func(stat *models.StatData) *models.StatData {
+		_, err = statmodel.SetRedisStat(currentDate, func(stat *statmodel.StatData) *statmodel.StatData {
 			stat.DownloadNum += 1
 			return stat
 		})
@@ -146,7 +197,7 @@ func VaildateShare(c *echo.Context) error {
 			}
 		}
 
-		if shareInfo.Type == models.ShareTypeFile {
+		if shareInfo.Type == sharemodel.ShareTypeFile {
 			return utils.HTTPSuccessHandler(c, map[string]any{
 				"token": downloadToken,
 			})

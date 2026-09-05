@@ -1,5 +1,3 @@
-import { times } from 'lodash-es'
-import { toast } from 'vue-sonner'
 let shareIdTokenMap: WeakMap<{ share_id: string }, string>
 
 const getShareToken = async (
@@ -36,21 +34,36 @@ const getShareToken = async (
     return token
 }
 
-const downloadFile = (token: string) => {
+export type DownloadArchiveTarget = 'zip' | 'tar.gz' | 'tar.zst' | 'tar.s2' | 'tar.snappy'
+
+const baseDownloadFile = (token: string, fileIds: string[], target?: DownloadArchiveTarget) => {
     const a = document.createElement('a')
-    a.href = `/api/download?token=${token}`
+    const searchParams = new URLSearchParams({ token })
+    fileIds?.forEach((fileId) => searchParams.append('file_ids', fileId))
+    if (target) {
+        searchParams.set('target', target)
+    }
+    a.href = `/api/download?${searchParams.toString()}`
     a.download = ''
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
 }
 
-const downloadFileByShareId = async (share_id: string) => {
+const downloadFile = (token: string, fileId: string) => {
+    return baseDownloadFile(token, [fileId])
+}
+
+const downloadArchive = (token: string, fileIds: string[], target: DownloadArchiveTarget = 'zip') => {
+    return baseDownloadFile(token, fileIds, target)
+}
+
+const downloadFileByShareId = async (share_id: string, fileId: string) => {
     const token = await getShareToken(share_id)
     if (!token) {
         throw new Error('获取token失败')
     }
-    return downloadFile(token)
+    return downloadFile(token, fileId)
 }
 
 const createShare = async (data: any) => {
@@ -60,7 +73,7 @@ const createShare = async (data: any) => {
             id?: string
             download_nums?: number
             expire_at?: number
-            file_name?: string
+            files?: { id?: string; file_name: string }[]
             pickup_code?: string
         }
     }>(`/api/share`, {
@@ -70,7 +83,7 @@ const createShare = async (data: any) => {
 }
 
 const createFileShare = async (data: {
-    files: { id: string; name: string }[]
+    files: { id: string; file_name: string }[]
     config: {
         download_nums: number
         expire_time: number
@@ -82,24 +95,14 @@ const createFileShare = async (data: {
     }
 }) => {
     const { files, config } = data || {}
-    return await Promise.all(
-        times(files.length, async (i) => {
-            const { id, name } = files[i] || {}
-            return await createShare({
-                type: 'file',
-                data: id,
-                config,
-                file_name: name,
-            })
-        })
-    )
+    return await createShare({ type: 'file', files, config })
 }
 
 const createTextShare = async (data: { text: string; config: any }) => {
     const { text, config } = data || {}
     return await createShare({
         type: 'text',
-        data: text,
+        text,
         config,
     })
 }
@@ -107,6 +110,7 @@ const createTextShare = async (data: { text: string; config: any }) => {
 const useMyAppShare = () => {
     return {
         downloadFile,
+        downloadArchive,
         downloadFileByShareId,
         createShare,
         createFileShare,

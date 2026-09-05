@@ -7,7 +7,7 @@ RUN apk add --no-cache gcompat
 ENV CI=true
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 COPY . .
-RUN corepack enable pnpm && pnpm i && pnpm --filter=015-front build && pnpm --dir pkg/mail export
+RUN corepack enable pnpm && pnpm i && pnpm --filter=015-front build
 
 FROM golang:1.26.3 AS backend-builder
 WORKDIR /app
@@ -16,8 +16,6 @@ COPY go.work go.work.sum ./
 COPY backend/ ./backend/
 COPY worker/ ./worker/
 COPY pkg/ ./pkg/
-# Inject built email templates so Go can embed them
-COPY --from=front-builder /app/pkg/mail/out/ ./pkg/mail/out/
 RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && \
     go mod download
 # Build from workspace root so pkg/utils, pkg/models, pkg/services resolve
@@ -27,9 +25,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o backend-bin ./backend
 FROM front-base AS runner
 ARG VERSION
 ARG BUILD_TIME
-RUN apk add --no-cache curl openssl
+RUN apk add --no-cache curl openssl caddy
 ENV NODE_ENV production
-
+COPY Caddyfile /etc/caddy/Caddyfile
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nuxtjs
 
@@ -39,7 +37,7 @@ COPY --from=backend-builder /app/backend-bin /bin/backend
 COPY 015.sh /app/015.sh
 
 # Change the port and host
-ENV PORT=80 HOST=0.0.0.0
+ENV PORT=5000 HOST=0.0.0.0
 ENV VERSION=${VERSION}
 ENV BUILD_TIME=${BUILD_TIME}
 

@@ -1,0 +1,32 @@
+package pickupcode
+
+import (
+	"context"
+	"fmt"
+	"pkg/utils"
+	"time"
+
+	"github.com/redis/rueidis"
+)
+
+func GetRedisPickupData(pickupCode string) (string, error) {
+	rdb := utils.GetRedisClient()
+	ctx := context.Background()
+	shareId, err := rdb.Do(ctx, rdb.B().Get().Key(fmt.Sprintf("%s:%s", modelName, pickupCode)).Build()).ToString()
+	if rueidis.IsRedisNil(err) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return shareId, nil
+}
+
+func SetRedisPickupData(pickupCode string, shareId string) (bool, error) {
+	rdb := utils.GetRedisClient()
+	ctx := context.Background()
+	return rdb.Do(
+		ctx,
+		rdb.B().Set().Key(fmt.Sprintf("%s:%s", modelName, pickupCode)).Value(shareId).Nx().Ex(24*time.Hour).Build(),
+	).AsBool()
+}

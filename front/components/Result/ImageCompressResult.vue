@@ -179,7 +179,7 @@ watch(
                             const { new_file } = taskResults?.[index]?.data?.result?.[0] || {}
                             if (!new_file?.id) return
                             const data = await createFileShare({
-                                files: [{ id: new_file?.id as string, name: item?.file?.name }],
+                                files: [{ id: new_file?.id as string, file_name: item?.file?.name }],
                                 config: {
                                     download_nums: 1,
                                     expire_time: 60,
@@ -187,12 +187,12 @@ watch(
                                     has_password: false,
                                 },
                             })
-                            const { id } = data?.[0]?.data || {}
+                            const { id } = data?.data || {}
                             if (!id) {
                                 return
                             }
                             try {
-                                await downloadFileByShareId(id)
+                                await downloadFileByShareId(id, new_file.id)
                             } catch (error: any) {
                                 toast.error(error?.data?.message || error?.message || error)
                             }

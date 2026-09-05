@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"pkg/geoip"
-	"pkg/models"
+	relationmodel "pkg/models/file_share_relational"
+	sharemodel "pkg/models/share"
 	pkgservices "pkg/services"
-	u "pkg/utils"
 	"worker/internal/services"
 
 	"github.com/hibiken/asynq"
@@ -16,8 +16,8 @@ import (
 )
 
 type ShareRemoveTaskPayload struct {
-	ShareId string `json:"share_id"`
-	FileId  string `json:"file_id"`
+	ShareId string   `json:"share_id"`
+	FileIds []string `json:"file_ids"`
 }
 
 func RemoveShare(ctx context.Context, task *asynq.Task) error {
@@ -25,24 +25,24 @@ func RemoveShare(ctx context.Context, task *asynq.Task) error {
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
 		return err
 	}
-	shareIDs, err := models.GetRedisFileShareRelational(payload.FileId)
-	if err != nil {
-		return err
-	}
-	shareIDs = lo.Filter(shareIDs, func(x string, _ int) bool {
-		return x != payload.ShareId
-	})
-	if len(shareIDs) == 0 {
-		rdb := u.GetRedisClient()
-		if err := rdb.Do(ctx, rdb.B().Hdel().Key("015:fileShareRelational").Field(payload.FileId).Build()).Error(); err != nil {
-			return err
+	var errs []error
+	for _, fileId := range payload.FileIds {
+		shareIDs, err := relationmodel.SetRedisFileShareRelational(fileId, func(shareIDs []string) []string {
+			return lo.Filter(shareIDs, func(x string, _ int) bool {
+				return x != payload.ShareId
+			})
+		})
+		if err != nil {
+			errs = append(errs, fmt.Errorf("remove share relation for file %s: %w", fileId, err))
+			continue
 		}
-		return pkgservices.SetFileRemoveTask(payload.FileId, 0)
+		if len(shareIDs) == 0 {
+			if err := pkgservices.SetFileRemoveTask(fileId, 0); err != nil {
+				errs = append(errs, fmt.Errorf("enqueue remove task for file %s: %w", fileId, err))
+			}
+		}
 	}
-	if err := models.SetRedisFileShareRelational(payload.FileId, shareIDs); err != nil {
-		return err
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 func ShareNotify(ctx context.Context, task *asynq.Task) error {
@@ -50,7 +50,7 @@ func ShareNotify(ctx context.Context, task *asynq.Task) error {
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
 		return err
 	}
-	shareInfo, err := models.GetRedisShareInfo(payload.ShareId)
+	shareInfo, err := sharemodel.GetRedisShareInfo(payload.ShareId)
 	if err != nil || shareInfo == nil {
 		return err
 	}
@@ -71,10 +71,15 @@ func ShareNotify(ctx context.Context, task *asynq.Task) error {
 		region = info.Emoji + " " + info.Country.Country.Names.English
 	}
 
+	displayName := lo.Substring(shareInfo.Text, 0, 7) + "..."
+	if shareInfo.Type == sharemodel.ShareTypeFile && len(shareInfo.Files) > 0 {
+		displayName = shareInfo.Files[0].FileName
+	}
+
 	for _, email := range shareInfo.NotifyEmails {
 		if err := services.SendEmail(email, services.EmailTemplateData{
 			Locale:    shareInfo.Locale,
-			FileName:  lo.Ternary(shareInfo.Type == models.ShareTypeFile, shareInfo.FileName, lo.Substring(shareInfo.Data, 0, 7)+"..."),
+			FileName:  displayName,
 			IP:        payload.IP,
 			Region:    region,
 			ShareType: shareInfo.Type,
